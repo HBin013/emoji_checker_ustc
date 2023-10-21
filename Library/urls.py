@@ -25,9 +25,9 @@ urlpatterns = [
     path('register/', views.register),  # 注册
     path('logout_view/', views.logout_view),  # 退出登录
 
-    path('reader_index/', views.reader_index),  # 读者首页
-    path('reader_query/', views.reader_query),  # 读者书目状态查询
-    path('reader_status/', views.reader_status),  # 读者个人状态查询
+    path('user_index/', views.user_index),  # 读者首页
+    path('reader_query/', views.emoji_query),  # 读者书目状态查询
+    path('emoji_history/', views.emoji_history),  # 读者个人状态查询
     path('reader_reserve/', views.reader_reserve),  # 读者预约登记
     path('reader_recommend/', views.reader_recommend),  # 读者荐购
 

@@ -47,43 +47,6 @@ def login_view(request):  # 用户登录
                 return redirect('admin_index')
             else:
                 return redirect('user_index')
-
-        # if '@' in username:  # 使用邮箱登录
-        #     result = User.objects.filter(email=username)
-        #     if result.exists() and check_password(password, result[0].password):  # 读者邮箱登录成功
-        #     #if result.exists() and password == result[0].password:  # 读者邮箱登录成功
-        #         request.session['login_type'] = result[0].role
-        #         request.session['id'] = result[0].uid
-        #         request.session['name'] = result[0].uname
-        #         return redirect('/user_index/')
-        #     else:
-        #         context["msg"] = "邮箱或者密码输入错误"
-        #         return render(request, 'home.html', context=context)
-        # elif 'staff_id' in username:  # 管理员使用工号登录
-        #     result = librarian_table.objects.filter(staff_id=username)
-        #     if result.exists() and password == result[0].password:  # 管理员登录成功
-        #         request.session['login_type'] = 'identity_admin'
-        #         request.session['id'] = result[0].staff_id
-        #         request.session['name'] = result[0].name
-        #         return redirect('/admin_index/')
-        #     else:
-        #         context["msg"] = "账号或密码输入错误"
-        #         return render(request, 'home.html', context=context)
-        # else:  # 读者使用id登录
-        #     # 如果username不是数字，直接报错
-        #     if not username.isdigit():
-        #         context["msg"] = "账号或密码输入错误"
-        #         return render(request, 'home.html', context=context)
-        #     username = username.lstrip('0')
-        #     result = reader_table.objects.filter(reader_id=username)
-        #     if result.exists() and check_password(password, result[0].password): # 读者id登录成功
-        #         request.session['login_type'] = 'identity_reader'
-        #         request.session['id'] = result[0].reader_id
-        #         request.session['name'] = result[0].name
-        #         return redirect('/reader_index/')
-        #     else:
-        #         context["msg"] = "账号或密码输入错误"
-        #         return render(request, 'home.html', context=context)
     else:
         return render(request, 'home.html')
 
@@ -137,11 +100,49 @@ def register(request):  # 新用户注册账户
         return render(request, 'register.html', context=context)
 
 
-def logout_view(request):  # 读者、管理员退出登录
+def logout_view(request):  # 退出登录
     if request.session.get('login_type', None):
         request.session.flush()
     return HttpResponseRedirect("/")
 
+def modifyPwd(request):  # 修改密码
+    """
+        修改密码
+    """
+    context = dict()
+    uname = request.session.get("name")
+    tel = request.session.get("phone_num")
+    mailAddr = request.session.get("mailAddr")
+    role = request.session.get("role")
+    context["name"] = uname
+    context["phone_num"] = tel
+    context["mail"] = mailAddr
+    context["role"] = role
+    if request.method == 'GET':
+        return render(request, 'modifyPwd.html', context=context)
+    elif request.method == 'POST':
+        pw = request.POST.get("pw")  # 密码
+        pw_confirm = request.POST.get("pw_confirm")  # 密码确认
+        context["msg"] = "未知错误，请重试"
+        if not (pw and pw_confirm):
+            context['msg'] = "密码和确认密码均不可为空"
+            return render(request, 'modifyPwd.html', context=context)
+        if pw != pw_confirm:
+            context["msg"] = "两次密码输入不一致，请检查"
+            return render(request, 'modifyPwd.html', context=context)
+        if len(pw) < 8 or len(pw) > 20:
+            context["msg"] = "密码长度8-20位"
+            return render(request, 'modifyPwd.html', context=context)
+        result = User.objects.filter(uname=uname)
+        if result[0].pwd == pw:
+            context["msg"] = "新密码与旧密码啊相同"
+            return render(request, 'modifyPwd.html', context=context)
+        User.objects.filter(uname=uname).update(pwd=pw)
+        context["msg"] = "修改成功"
+        logout_view(request) # 修改密码后自动退出
+        # return render(request, 'home.html', context=context)
+    else:
+        return render(request, 'modifyPwd.html', context=context)
 
 """
 登录后的session:
@@ -151,7 +152,7 @@ request.session['name']: uname
 """
 
 
-# =====================读者======================
+# =====================emoji相关功能======================
 
 
 def user_index(request):  # 用户首页
@@ -165,57 +166,43 @@ def user_index(request):  # 用户首页
 
 
 # 查询历史emoji
-def reader_query(request):
+def emoji_history(request):
     """
-        查询并返回符合条件的书目
-        给的书目条件越多，则符合条件的书目会越少
+        查询并返回符合条件的emoji
+        给的emoji条件越多，则符合条件的emoji会越少
     """
-    if request.session.get('login_type', None) != 'identity_reader':
+    temp = request.session.get('login_type', None)
+    if temp != '0' and temp != '2' and temp != '3':
         return HttpResponseRedirect("/")
     context = dict()
-    context['name'] = request.session.get('name', None)
+    context['name'] = uname = request.session.get('name', None)
     if request.method == 'GET':
-        return render(request, 'reader_query.html', context=context)
+        return render(request, 'emoji_history.html', context=context)
     else:
-        context['book_name'] = book_name = request.POST.get('book_name')  # 书名
-        context['author'] = author = request.POST.get('author')  # 作者
-        context['isbn'] = isbn = request.POST.get('isbn')  # ISBN
-        context['publisher'] = publisher = request.POST.get('publisher')  # 出版社
+        # context['ename'] = ename = request.POST.get('ename')  # emoji名称
+        # context['cid'] = cid = request.POST.get('cid')  # 课程
         context['msg'] = "未知错误，请重试"
-        result = booklist_table.objects.all()
-        '''
-        if not book_name and not author and not isbn and not publisher:
-            context['msg'] = "请输入有效筛选信息！"
-            return render(request, 'reader_query.html', context=context)
-        '''
-        if book_name:
-            result = result.filter(book_name__contains=book_name)
-        if author:
-            result = result.filter(author__contains=author)
-        if isbn:
-            result = result.filter(isbn__startswith=isbn)
-        if publisher:
-            result = result.filter(publisher__contains=publisher)
-        book_message = []
+        result = Emoji.objects.all()
+        # if ename:
+        #     result = result.filter(ename__contains=ename)
+        if uname:
+            result = result.filter(uname=uname)
+        # if cid:
+        #     result = result.filter(cid=cid)
+        emoji_history = []
         for elem in result:
-            book_message.append(
+            emoji_history.append(
                 {
-                    'ISBN': elem.isbn,
-                    'book_name': elem.book_name,
-                    'author': elem.author,
-                    'publisher': elem.publisher,
-                    'publish_date': elem.publish_date,
-                    'num_inlib': len(book_table.objects.filter(isbn=elem.isbn)),
-                    'num_forbid_borrow': len(book_table.objects.filter(isbn=elem.isbn, status='不外借')),
-                    'num_not_borrow': len(book_table.objects.filter(isbn=elem.isbn, status='未借出')),
-                    'num_have_borrow': len(book_table.objects.filter(isbn=elem.isbn, status='已借出')),
-                    'num_have_reserve': len(book_table.objects.filter(isbn=elem.isbn, status='已预约')),
-
+                    'eid': elem.eid,
+                    'ename': elem.ename,
+                    'timeStamp': elem.timeStamp,
+                    'uid': elem.uid,
+                    'cid': elem.cid
                 }
             )
         context['msg'] = ''
-        context['book_status'] = book_message
-        return render(request, 'reader_query.html', context=context)
+        context['emoji_history'] = emoji_history
+        return render(request, 'emoji_history.html', context=context)
 
 
 # 读者预约登记
@@ -312,7 +299,7 @@ def reader_reserve(request):
 
 
 # 读者个人状态查询
-def reader_status(request):
+def emoji_history(request):
     """
         查询借阅表中关于读者的借书项
     """
@@ -333,7 +320,7 @@ def reader_status(request):
 
             }
         )
-    context['reader_status'] = borrow_status
+    context['emoji_history'] = borrow_status
     recommend_result = recommend_table.objects.filter(reader_id_id=request.session.get('id'))
     recommend_status = []
     for elem in recommend_result:
@@ -349,7 +336,7 @@ def reader_status(request):
     # context['reader_recommend'] = recommend_result
     context['reader_recommend'] = recommend_status
     context['money'] = reader_table.objects.get(reader_id=request.session.get('id')).arrears
-    return render(request, 'reader_status.html', context=context)
+    return render(request, 'emoji_history.html', context=context)
 
 
 def reader_recommend(request):

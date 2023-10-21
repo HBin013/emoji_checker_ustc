@@ -7,11 +7,11 @@
     <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
     <script src="../../static/bootstrap/js/bootstrap.min.js"></script>
     <script src="../../static/zico/JS/zico.min.js"></script>
-    <title> 个人状态查询 </title>
+    <title> 历史emoji查询 </title>
 </head>
 <body>
 <nav class="navbar navbar-dark sticky-top flex-md-nowrap p-0 shadow" style="background-color: #29abff;">
-    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="/reader_index/"
+    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="/user_index/"
        style="font-weight: bold;font-size: x-large;">emoji管理系统</a>
     <span style="font-size: medium; color: #ffffff; margin-top: 0px; font-weight: bold;font-size: large;">欢迎  {{ name }}</span>
     <ul class="navbar-nav px-3">
@@ -26,7 +26,7 @@
             <div class="sidebar-sticky pt-3">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link" href="/reader_index/">
+                        <a class="nav-link" href="/user_index/">
                             <i class="zi zi_service"></i>
                             <span>用户首页</span>
                         </a>
@@ -38,7 +38,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/reader_status/">
+                        <a class="nav-link active" href="/emoji_history/">
                             <i class="zi zi_squareUp"></i>
                             <span>emoji历史查询</span>
                         </a>
@@ -50,11 +50,10 @@
 </div>
 <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-        <h1 class="h2">个人状态查询</h1>
+        <h1 class="h2">emoji历史查询</h1>
     </div>
-    <!--views.py中相关函数返回欠款金额，类似获取读者姓名的操作-->
     <h3>emoji状态：</h3>
-    {% if reader_status %}
+    {% if emoji_history %}
     <table class="table container-fluid">
         <thead class="thead-light">
         <tr>
@@ -64,11 +63,11 @@
         </tr>
         </thead>
         <tbody>
-        {% for elem in reader_status %}
+        {% for elem in emoji_history %}
         <tr>
-            <td> {{ elem.book_id }}</td>
-            <td> {{ elem.book_name }}</td>
-            <td> {{ elem.borrowing_time }}</td>
+            <td> {{ elem.eid }}</td>
+            <td> {{ elem.ename }}</td>
+            <td> {{ elem.timeStamp }}</td>
         </tr>
         {% endfor %}
         </tbody>

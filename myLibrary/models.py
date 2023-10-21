@@ -27,10 +27,10 @@ class Course(models.Model):
 
 
 class Emoji(models.Model):
-    eid = models.IntegerField(primary_key=True)
+    eid = models.AutoField(primary_key=True)
     ename = models.CharField(max_length=15)
-    timeStamp = models.DateTimeField(primary_key=True)
-    uid = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
+    timeStamp = models.DateTimeField()
+    uid = models.ForeignKey(User, on_delete=models.CASCADE)
     cid = models.ForeignKey(Course, on_delete=models.CASCADE)
 
 
