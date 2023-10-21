@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <link href="../../static/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css">
     <link href="../../static/css/dashboard.css" rel="stylesheet">
-    <title> 读者首页 </title>
+    <title> 用户首页 </title>
     <script src="../../static/zico/JS/zico.min.js"></script>
 </head>
 <body>
@@ -33,7 +33,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/reader_borrow/">
+                        <a class="nav-link active" href="/send_emoji/">
                             <i class="zi zi_squareBook"></i>
                             <span>emoji发送</span>
                         </a>
@@ -51,7 +51,7 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">用户emoji发送</h1>
             </div>
-            <form role="form" action="/admin_borrow/" method="post">
+            <form role="form" action="/send_emoji/" method="post">
                 {% csrf_token %}
                 <div class="form-group row">
                     <label for="isbn" class="col-md-1 col-form-label"> emoji号 </label>

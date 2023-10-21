@@ -33,7 +33,7 @@ urlpatterns = [
 
     path('admin_index/', views.admin_index),  # 管理员首页
     path('admin_query/', views.admin_query),  # 读者书目状态查询
-    path('admin_borrow/', views.admin_borrow),  # 管理员借书
+    path('send_emoji/', views.send_emoji),  # 管理员借书
     path('admin_return/', views.admin_return),  # 管理员还书
     path('admin_upload/', views.admin_upload),  # 管理员入库
     path('admin_takeoff/', views.admin_takeoff),  # 管理员出库

@@ -31,7 +31,7 @@ class Emoji(models.Model):
     ename = models.CharField(max_length=15)
     timeStamp = models.DateTimeField()
     uid = models.ForeignKey(User, on_delete=models.CASCADE)
-    cid = models.ForeignKey(Course, on_delete=models.CASCADE)
+    # cid = models.ForeignKey(Course, on_delete=models.CASCADE)
 
 
 class Sc(models.Model):

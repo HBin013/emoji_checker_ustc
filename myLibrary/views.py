@@ -111,13 +111,13 @@ def modifyPwd(request):  # 修改密码
     """
     context = dict()
     uname = request.session.get("name")
-    tel = request.session.get("phone_num")
-    mailAddr = request.session.get("mailAddr")
-    role = request.session.get("role")
+    # tel = request.session.get("phone_num")
+    # mailAddr = request.session.get("mailAddr")
+    # role = request.session.get("role")
     context["name"] = uname
-    context["phone_num"] = tel
-    context["mail"] = mailAddr
-    context["role"] = role
+    # context["phone_num"] = tel
+    # context["mail"] = mailAddr
+    # context["role"] = role
     if request.method == 'GET':
         return render(request, 'modifyPwd.html', context=context)
     elif request.method == 'POST':
@@ -151,7 +151,34 @@ request.session['id']: uid
 request.session['name']: uname
 """
 
-
+def send_emoji(request):
+    """
+        发送emoji
+    """
+    context = dict()
+    if request.method == 'GET':
+        return render(request, 'send_emoji.html', context=context)
+    elif request.method == 'POST':
+        context["name"] = name = request.POST.get("name")  # 姓名
+        # context["phone_num"] = phone_num = request.POST.get("phone_num")  # 电话
+        # context["mail"] = mail = request.POST.get("mail")  # 邮箱
+        # context["role"] = role = request.POST.get("role")  # 身份
+        ename = request.POST.get("ename")  # emoji名称
+        context["msg"] = "未知错误，请重试"
+        if not (ename):
+            context['msg'] = "请选择emoji"
+            return render(request, 'send_emoji.html', context=context)
+        uid = User.objects.filter(uname=name)[0].uid
+        emoji = Emoji(
+            ename=ename,
+            timeStamp=timezone.now(),
+            uid=uid
+        )
+        emoji.save()
+        context["msg"] = "发送成功"
+        return render(request, 'send_emoji.html', context=context)
+    else:
+        return render(request, 'send_emoji.html', context=context)
 # =====================emoji相关功能======================
 
 
@@ -206,137 +233,7 @@ def emoji_history(request):
 
 
 # 读者预约登记
-def reader_reserve(request):
-    """
-        读者预约时需要给出预约的ISBN号以及取书时间
-        只有仍然有馆藏的书目可以进行预约
-        对于已经预约的书目，可以在对应的取书时间借书
-        填写的预约时间至少要在当前日期 或者当前日期之后的某个日子
-    """
-    if request.session.get('login_type', None) != 'identity_reader':
-        return HttpResponseRedirect("/")
-    context = dict()
-    context['name'] = request.session.get('name', None)
-    existing_reservation = []  # 已存在的预约登记
-    result = reservation_table.objects.filter(reader_id_id=request.session.get('id', None))
-    for elem in result:
-        existing_reservation.append(
-            {
-                'ISBN': book_table.objects.get(book_id=elem.book_id.book_id).isbn_id,
-                'book_name': booklist_table.objects.get(
-                    isbn=book_table.objects.get(book_id=elem.book_id.book_id).isbn_id).book_name,
-                'reservation_date': elem.reservation_date,
-                'take_date': elem.take_date,
-                'book_id': elem.book_id_id if elem.book_id_id else None,
-                'reservation_status': elem.reservation_status if elem.reservation_status else '未处理'
-            }
-        )
-    context['existing_reservation'] = existing_reservation
-    if request.method == 'GET':
-        return render(request, 'reader_reserve.html', context=context)
-    elif request.method == 'POST':
-        context['msg'] = "未知错误，请重试"
-        context['ISBN'] = isbn = request.POST.get('ISBN')
-        context['take_date'] = take_date = request.POST.get('take_date')
-        take_date = datetime.strptime(take_date, '%Y-%m-%d').date()
-        if not take_date or take_date < timezone.now().date():
-            context['msg'] = "请填写正确的日期"
-            return render(request, 'reader_reserve.html', context=context)
-        if not isbn:
-            context['msg'] = "请填写ISBN号进行预约登记"
-            return render(request, 'reader_reserve.html', context=context)
-        result = booklist_table.objects.filter(isbn=isbn)
-        if not result.exists():
-            context['msg'] = "ISBN输入有误，请重试"
-            return render(request, 'reader_reserve.html', context=context)
-        # 不可以重复预约
-        reservation_book = reservation_table.objects.filter(reader_id=request.session.get('id', None))
-        if reservation_book.exists():
-            for elem in reservation_book:
-                book_id = elem.book_id_id
-                book = book_table.objects.filter(book_id=book_id)
-                book_isbn = book[0].isbn_id
-                if (book_isbn == isbn):
-                    context['msg'] = "您已预约该书，请勿重复预约！"
-                    return render(request, 'reader_reserve.html', context=context)
 
-        # 只可以预约当前有馆藏的书目
-        result = book_table.objects.filter(isbn=isbn, status='未借出')
-        if result.exists():
-            reservation_book = result[0]
-            item = reservation_table(
-                reader_id_id=request.session.get('id', None),
-                reservation_date=timezone.now(),
-                take_date=take_date,
-                reservation_status='未处理',
-                book_id_id=reservation_book.book_id
-            )
-            # 修改图书表对应的图书状态
-            reservation_book.status = '已预约'  # 修改状态为已借出
-            reservation_book.save()  # 保存修改到数据库
-            item.save()
-            context['msg'] = "预约成功！"
-        else:
-            context['msg'] = "当前图书没有可借的馆藏，不可预约！"
-            return render(request, 'reader_reserve.html', context=context)
-
-        existing_reservation_end = []  # 最终的预约登记状态
-        result = reservation_table.objects.filter(reader_id_id=request.session.get('id', None))
-        for elem in result:
-            existing_reservation_end.append(
-                {
-                    'ISBN': book_table.objects.get(book_id=elem.book_id.book_id).isbn_id,
-                    'book_name': booklist_table.objects.get(
-                        isbn=book_table.objects.get(book_id=elem.book_id.book_id).isbn_id).book_name,
-                    'reservation_date': elem.reservation_date,
-                    'take_date': elem.take_date,
-                    'book_id': elem.book_id_id if elem.book_id_id else None,
-                    'reservation_status': elem.reservation_status if elem.reservation_status else '未处理'
-                }
-            )
-        context['existing_reservation'] = existing_reservation_end
-        return render(request, 'reader_reserve.html', context=context)
-
-
-# 读者个人状态查询
-def emoji_history(request):
-    """
-        查询借阅表中关于读者的借书项
-    """
-    if request.session.get('login_type', None) != 'identity_reader':
-        return HttpResponseRedirect("/")
-    context = dict()
-    context['name'] = request.session.get('name', None)
-    borrow_result = borrow_table.objects.filter(reader_id_id=request.session.get('id'))
-    borrow_status = []
-    for elem in borrow_result:
-        borrow_status.append(
-            {
-                'book_id': elem.book_id.book_id,
-                'book_name': elem.book_id.isbn.book_name,
-                'borrowing_time': elem.borrowing_time,
-                'due_date': elem.due_date,
-                'return_date': elem.return_date
-
-            }
-        )
-    context['emoji_history'] = borrow_status
-    recommend_result = recommend_table.objects.filter(reader_id_id=request.session.get('id'))
-    recommend_status = []
-    for elem in recommend_result:
-        recommend_status.append(
-            {
-                'isbn': elem.isbn,
-                'book_num': elem.book_num,
-                #'admin_operation': elem.status if elem.status == "未处理" else elem.admin_operation
-                'admin_operation': elem.status
-
-            }
-        )
-    # context['reader_recommend'] = recommend_result
-    context['reader_recommend'] = recommend_status
-    context['money'] = reader_table.objects.get(reader_id=request.session.get('id')).arrears
-    return render(request, 'emoji_history.html', context=context)
 
 
 def reader_recommend(request):
@@ -472,7 +369,7 @@ def admin_query(request):  # 管理员书目状态查询
         return render(request, 'emoji_query.html', context=context)
 
 
-# def admin_borrow(request):  # 管理员借书
+# def send_emoji(request):  # 管理员借书
 #     """
 #         分为两种情况
 #         1.来借阅之前预约过的图书，注意curdate()必须和之前预约的取书日期一致才可以借书
@@ -484,29 +381,29 @@ def admin_query(request):  # 管理员书目状态查询
 #     context = dict()
 #     context['name'] = request.session.get('name')
 #     if request.method == 'GET':
-#         return render(request, 'admin_borrow.html', context=context)
+#         return render(request, 'send_emoji.html', context=context)
 #     else:
 #         context['reader_id'] = reader_id = request.POST.get('reader_id')
 #         context['isbn'] = isbn = request.POST.get('isbn')
 #         context['msg'] = "未知错误，请重试"
 #         if not reader_id or not isbn:
 #             context['msg'] = "请填写完整的读者id和ISBN号"
-#             return render(request, 'admin_borrow.html', context=context)
+#             return render(request, 'send_emoji.html', context=context)
 #         if not reader_id.isdecimal():
 #             context['msg'] = "读者id不存在！"
-#             return render(request, 'admin_borrow.html', context=context)
+#             return render(request, 'send_emoji.html', context=context)
 #         result = reader_table.objects.filter(reader_id=reader_id)
 #         if not result.exists():
 #             context['msg'] = "读者id不存在！"
-#             return render(request, 'admin_borrow.html', context=context)
+#             return render(request, 'send_emoji.html', context=context)
 #         result = booklist_table.objects.filter(isbn=isbn)
 #         if not result.exists():
 #             context['msg'] = "ISBN号填写错误，不存在该类书籍！"
-#             return render(request, 'admin_borrow.html', context=context)
+#             return render(request, 'send_emoji.html', context=context)
 #         result = borrow_table.objects.filter(reader_id_id=reader_id, return_date=None)
 #         if len(result) >= 10:
 #             context['msg'] = "该读者借阅书籍数已经达到上限！"
-#             return render(request, 'admin_borrow.html', context=context)
+#             return render(request, 'send_emoji.html', context=context)
 #         # 查询预约表，为读者处理预约表
 #         reservation_book = reservation_table.objects.filter \
 #             (reader_id_id=reader_id, take_date=timezone.now().date(), reservation_status='未处理')
@@ -533,13 +430,13 @@ def admin_query(request):  # 管理员书目状态查询
 #             result.reservation_status = '已处理'
 #             result.save()  # 修改预约信息
 #             context['msg'] = "借阅成功（已预约）！（图书id：" + str(item.book_id.book_id) + "）"
-#             return render(request, 'admin_borrow.html', context=context)
+#             return render(request, 'send_emoji.html', context=context)
 #         else:  # 未预约直接借书（添加借书信息、修改图书状态）
 #             # 注意：此时读者不可以借阅id号在预约表中的图书，即状态为已预约的图书
 #             result = book_table.objects.filter(isbn_id=isbn, status='未借出')
 #             if not result.exists():
 #                 context['msg'] = "该图书已全部被借出或预约，无法借阅！"
-#                 return render(request, 'admin_borrow.html', context=context)
+#                 return render(request, 'send_emoji.html', context=context)
 #             result = result[0]
 #             result.status = '已借出'
 #             result.save()  # 修改图书状态
@@ -551,7 +448,7 @@ def admin_query(request):  # 管理员书目状态查询
 #             )
 #             item.save()  # 添加借书信息
 #             context['msg'] = "借阅成功（未预约）！（图书id：" + str(result.book_id) + "）"
-#             return render(request, 'admin_borrow.html', context=context)
+#             return render(request, 'send_emoji.html', context=context)
 
 
 def admin_return(request):  # 管理员还书
