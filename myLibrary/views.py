@@ -6,8 +6,7 @@ from datetime import datetime
 from django.shortcuts import get_object_or_404, render
 from django.db import connection
 from django.db.models import Count  # 计数函数
-from .models import reader_table, librarian_table, booklist_table, book_table, borrow_table, reservation_table, \
-    recommend_table  # 引入数据库
+from .models import *  # 引入数据库
 import re
 from decimal import Decimal
 from django.db.models import Q
@@ -25,65 +24,73 @@ def home(request):
     return render(request, 'home.html')
 
 
-def login_view(request):  # 读者、管理员用户登录
+def login_view(request):  # 用户登录
     """
-        登录时根据登录时的账号类型确定权限
-        读者可以使用邮箱登录 id登录
-        管理员只可以使用工号登录
+        登录
     """
     context = dict()
     if request.method == 'POST':
         context["username"] = username = request.POST.get("username")
         password = request.POST.get("password")
         if not username:
-            context["msg"] = "请输入邮箱、读者id或图书管理员工号"
+            context["msg"] = "请输入用户名"
             return render(request, 'home.html', context=context)
         if not password:
             context["msg"] = "不可输入空密码"
             return render(request, 'home.html', context=context)
-        if '@' in username:  # 读者使用邮箱登录
-            result = reader_table.objects.filter(email=username)
-            if result.exists() and check_password(password, result[0].password):  # 读者邮箱登录成功
-            #if result.exists() and password == result[0].password:  # 读者邮箱登录成功
-                request.session['login_type'] = 'identity_reader'
-                request.session['id'] = result[0].reader_id
-                request.session['name'] = result[0].name
-                return redirect('/reader_index/')
+        result = User.objects.filter(uname=username)
+        if result.exists() and check_password(password, result[0].pwd): # 登录成功
+            request.session['login_type'] = result[0].role
+            request.session['id'] = result[0].uid
+            request.session['name'] = result[0].uname
+            if result[0].role == 1:
+                return redirect('admin_index')
             else:
-                context["msg"] = "邮箱或者密码输入错误"
-                return render(request, 'home.html', context=context)
-        elif 'staff_id' in username:  # 管理员使用工号登录
-            result = librarian_table.objects.filter(staff_id=username)
-            if result.exists() and password == result[0].password:  # 管理员登录成功
-                request.session['login_type'] = 'identity_admin'
-                request.session['id'] = result[0].staff_id
-                request.session['name'] = result[0].name
-                return redirect('/admin_index/')
-            else:
-                context["msg"] = "账号或密码输入错误"
-                return render(request, 'home.html', context=context)
-        else:  # 读者使用id登录
-            # 如果username不是数字，直接报错
-            if not username.isdigit():
-                context["msg"] = "账号或密码输入错误"
-                return render(request, 'home.html', context=context)
-            username = username.lstrip('0')
-            result = reader_table.objects.filter(reader_id=username)
-            if result.exists() and check_password(password, result[0].password): # 读者id登录成功
-                request.session['login_type'] = 'identity_reader'
-                request.session['id'] = result[0].reader_id
-                request.session['name'] = result[0].name
-                return redirect('/reader_index/')
-            else:
-                context["msg"] = "账号或密码输入错误"
-                return render(request, 'home.html', context=context)
+                return redirect('user_index')
+
+        # if '@' in username:  # 使用邮箱登录
+        #     result = User.objects.filter(email=username)
+        #     if result.exists() and check_password(password, result[0].password):  # 读者邮箱登录成功
+        #     #if result.exists() and password == result[0].password:  # 读者邮箱登录成功
+        #         request.session['login_type'] = result[0].role
+        #         request.session['id'] = result[0].uid
+        #         request.session['name'] = result[0].uname
+        #         return redirect('/user_index/')
+        #     else:
+        #         context["msg"] = "邮箱或者密码输入错误"
+        #         return render(request, 'home.html', context=context)
+        # elif 'staff_id' in username:  # 管理员使用工号登录
+        #     result = librarian_table.objects.filter(staff_id=username)
+        #     if result.exists() and password == result[0].password:  # 管理员登录成功
+        #         request.session['login_type'] = 'identity_admin'
+        #         request.session['id'] = result[0].staff_id
+        #         request.session['name'] = result[0].name
+        #         return redirect('/admin_index/')
+        #     else:
+        #         context["msg"] = "账号或密码输入错误"
+        #         return render(request, 'home.html', context=context)
+        # else:  # 读者使用id登录
+        #     # 如果username不是数字，直接报错
+        #     if not username.isdigit():
+        #         context["msg"] = "账号或密码输入错误"
+        #         return render(request, 'home.html', context=context)
+        #     username = username.lstrip('0')
+        #     result = reader_table.objects.filter(reader_id=username)
+        #     if result.exists() and check_password(password, result[0].password): # 读者id登录成功
+        #         request.session['login_type'] = 'identity_reader'
+        #         request.session['id'] = result[0].reader_id
+        #         request.session['name'] = result[0].name
+        #         return redirect('/reader_index/')
+        #     else:
+        #         context["msg"] = "账号或密码输入错误"
+        #         return render(request, 'home.html', context=context)
     else:
         return render(request, 'home.html')
 
 
-def register(request):  # 新读者注册账户
+def register(request):  # 新用户注册账户
     """
-        注册账号，注意邮箱是唯一的
+        注册账号
     """
     context = dict()
     if request.method == 'GET':
@@ -92,11 +99,12 @@ def register(request):  # 新读者注册账户
         context["name"] = name = request.POST.get("name")  # 姓名
         context["phone_num"] = phone_num = request.POST.get("phone_num")  # 电话
         context["mail"] = mail = request.POST.get("mail")  # 邮箱
+        context["role"] = role = request.POST.get("role")  # 身份
         pw = request.POST.get("pw")  # 密码
         pw_confirm = request.POST.get("pw_confirm")  # 密码确认
         context["msg"] = "未知错误，请重试"
-        if not (name and phone_num and mail and pw and pw_confirm):
-            context['msg'] = "姓名、电话、邮箱和密码均不可为空"
+        if not (name and phone_num and mail and pw and pw_confirm and role):
+            context['msg'] = "姓名、电话、身份、邮箱和密码均不可为空"
             return render(request, 'register.html', context=context)
         if len(phone_num) != 11 or not phone_num.isdecimal():
             context["msg"] = "电话输入有误，请检查"
@@ -104,25 +112,26 @@ def register(request):  # 新读者注册账户
         if pw != pw_confirm:
             context["msg"] = "两次密码输入不一致，请检查"
             return render(request, 'register.html', context=context)
-        if len(pw) < 6:
-            context["msg"] = "密码长度至少需要六位"
+        if len(pw) < 8 or len(pw) > 20:
+            context["msg"] = "密码长度8-20位"
             return render(request, 'register.html', context=context)
         if '@' not in mail:
             context["msg"] = "邮箱格式错误，缺少@"
             return render(request, 'register.html', context=context)
-        result = reader_table.objects.filter(email=mail)
+        result = User.objects.filter(uname=name)
         if result.exists():
-            context["msg"] = "邮箱已经注册,你可直接使用该邮箱登录"
+            context["msg"] = "用户名已经注册"
             return render(request, 'register.html', context=context)
-        item = reader_table(
-            name=name,
-            phone_num=phone_num,
-            email=mail,
-            password=make_password(pw)
+        item = User(
+            uname=name,
+            mailAddr=mail,
+            tel=phone_num,
+            role=role,
+            pwd=make_password(pw)
         )
         item.save()
-        result = reader_table.objects.get(email=mail)
-        context["msg"] = "注册成功，系统自动为您分配读者账号，id为：" + str(result.reader_id).zfill(5)
+        result = User.objects.get(uname=name)
+        context["msg"] = "注册成功，系统自动为您分配账号，id为：" + str(result.reader_id)
         return render(request, 'home.html', context=context)
     else:
         return render(request, 'register.html', context=context)
@@ -136,25 +145,26 @@ def logout_view(request):  # 读者、管理员退出登录
 
 """
 登录后的session:
-request.session['login_type']: 读者'identity_reader'  管理员'identity_admin'
-request.session['id']: 读者id  管理员工号 
-request.session['name']: 读者姓名 管理员姓名
+request.session['login_type']: role
+request.session['id']: uid
+request.session['name']: uname
 """
 
 
 # =====================读者======================
 
 
-def reader_index(request):  # 读者首页
-    if request.session.get('login_type', None) != 'identity_reader':
+def user_index(request):  # 用户首页
+    temp = request.session.get('login_type', None)
+    if temp != '0' and temp != '2' and temp != '3':
         return HttpResponseRedirect("/")
     context = dict()
     context['name'] = request.session.get('name')
     context['id'] = request.session.get('id')
-    return render(request, 'reader_index.html', context=context)
+    return render(request, 'user_index.html', context=context)
 
 
-# 读者书目状态查询
+# 查询历史emoji
 def reader_query(request):
     """
         查询并返回符合条件的书目
@@ -437,7 +447,7 @@ def admin_query(request):  # 管理员书目状态查询
     context = dict()
     context['name'] = request.session.get('name', None)
     if request.method == 'GET':
-        return render(request, 'admin_query.html', context=context)
+        return render(request, 'emoji_query.html', context=context)
     else:
         context['book_name'] = book_name = request.POST.get('book_name')  # 书名
         context['author'] = author = request.POST.get('author')  # 作者
@@ -472,7 +482,7 @@ def admin_query(request):  # 管理员书目状态查询
             )
         context['msg'] = ''
         context['book_status'] = book_message
-        return render(request, 'admin_query.html', context=context)
+        return render(request, 'emoji_query.html', context=context)
 
 
 # def admin_borrow(request):  # 管理员借书
@@ -1033,7 +1043,7 @@ def admin_recommend_operation(request):
             )
         context['msg'] = ''
         context['book_status'] = book_message
-        return render(request, 'admin_query.html', context=context)
+        return render(request, 'emoji_query.html', context=context)
     """
 
 
@@ -1064,4 +1074,4 @@ def reader_book_detail(request, isbn):
 
 def libadmin_book_detail(request, isbn):
     book = get_object_or_404(booklist_table, isbn=isbn)
-    return render(request, 'admin_book_info.html', {'book': book})
+    return render(request, 'emoji_statistic.html', {'book': book})
