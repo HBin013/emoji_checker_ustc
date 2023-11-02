@@ -21,34 +21,18 @@ urlpatterns = [
     path('', views.home),
     path('admin/', admin.site.urls),
 
-    path('login_view/', views.login_view),  # 登录
-    path('register/', views.register),  # 注册
-    path('logout_view/', views.logout_view),  # 退出登录
+    path('login_view/', views.login_view, name='login_view'),  # 登录
+    path('register/', views.register, name='register'),  # 注册
+    path('logout_view/', views.logout_view, name='logout_view'),  # 退出登录
+    path('modifyPwd/', views.modifyPwd, name='modifyPwd'),  # 修改密码
 
-    path('user_index/', views.user_index),  # 读者首页
-    path('reader_query/', views.emoji_query),  # 读者书目状态查询
-    path('emoji_history/', views.emoji_history),  # 读者个人状态查询
-    path('reader_reserve/', views.reader_reserve),  # 读者预约登记
-    path('reader_recommend/', views.reader_recommend),  # 读者荐购
+    path('user_index/', views.user_index, name='user_index'),  # 用户首页
+    path('emoji_history/', views.emoji_history, name='emoji_history'),  # 查看历史emoji
 
-    path('admin_index/', views.admin_index),  # 管理员首页
-    path('admin_query/', views.admin_query),  # 读者书目状态查询
-    path('send_emoji/', views.send_emoji),  # 管理员借书
-    path('admin_return/', views.admin_return),  # 管理员还书
-    path('admin_upload/', views.admin_upload),  # 管理员入库
-    path('admin_takeoff/', views.admin_takeoff),  # 管理员出库
-    path('admin_pay/', views.admin_pay),  # 管理员缴扣费
-    path('admin_recommend/', views.admin_recommend),  # 管理员处理荐购请求
-    path('admin_recommend_operation/', views.admin_recommend_operation),
+    path('admin_index/', views.admin_index, name='admin_index'),  # 管理员首页
+    path('send_emoji/', views.send_emoji, name='send_emoji'),  # 发送emoji
+    path('admin_takeoff/', views.admin_takeoff, name='admin_takeoff'),  # 管理员出库
 
-    path('admin_takeoff_query/', views.admin_takeoff_query),  # 查询可以出库的图书数量
-    path('admin_pay_query/', views.admin_pay_query),  # admin_pay 附属函数 管理员查询当前读者欠费多少
-    # 费用带来问题：
-    # 1.读者借书时，如果余额为负数，不能借书
-    # 2.读者还书时，如果超期，则需要联系管理员，进行扣费
-    # path('upload_file/', views.upload_file),
-    path('libadmin/book/<str:isbn>/', views.libadmin_book_detail, name='libadmin_book_detail'),
-    path('reader/book/<str:isbn>/', views.reader_book_detail, name='reader_book_detail'),
 ]
 
 # 使用了 <str:isbn> 作为 URL 路径参数，这样可以将请求 URL 中的 ISBN 号提取出来，并将其作为参数传递给视图函数 views.book_detail。使用 name='book_detail' 给该路由命名，以便在视图函数中使用 {% url 'book_detail' isbn %} 的方式生成书籍详细信息的 URL。
