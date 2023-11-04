@@ -4,31 +4,41 @@
     <meta charset="UTF-8">
     <link href="../../static/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css">
     <link href="../../static/css/home.css" rel="stylesheet" type="text/css">
-    <title> 修改密码 </title>
+    <title> 增加用户 </title>
 </head>
 <body class="text-center">
 <div class="background"></div>
-<form role="form" action="/modifyPwd/" method="post" class="login-box">
+<form role="form" action="/admin_query/add_user/" method="post" class="login-box">
     {% csrf_token %}
-    <h3 class="login-title"> 修改密码 </h3>
+    <h3 class="login-title"> 添加用户 </h3>
+    <label for="name" class="left pt-1"> 姓名 </label>
+    <input name="name" type="text" class="form-control" id="name" placeholder="请输入姓名" autofocus value="{{ name }}">
 
-{#    TODO: 这里可能需要增加一个向后端传递用户名的操作#}
-    <label for="pw" class="left pt-2"> 原登录密码 </label>
-    <input name="pw_old" type="password" class="form-control" id="pw_old" placeholder="请输入原登录密码" value="">
+    <label for="phone_num" class="left pt-2"> 电话 </label>
+    <input name="phone_num" type="text" class="form-control" id="phone_num" placeholder="请输入电话号码" autofocus value="{{ phone_num }}">
 
-    <label for="pw" class="left pt-2"> 新登录密码 </label>
-    <input name="pw" type="password" class="form-control" id="pw" placeholder="请输入新登录密码" value="">
+    <label for="mail" class="left pt-2"> 邮箱 </label>
+    <input name="mail" type="text" class="form-control" id="mail" placeholder="请输入邮箱" autofocus value="{{ mail }}">
+
+    <label for="role" class="left pt-2"> 身份 </label>
+    <select name="role" class="form-control" id="role">
+        <option value="0">游客</option>
+        <option value="1">管理员</option>
+        <option value="2">教师</option>
+        <option value="3">学生</option>
+    </select>
+
+    <label for="pw" class="left pt-2"> 登录密码 </label>
+    <input name="pw" type="password" class="form-control" id="pw" placeholder="请设置登录密码" value="">
 
     <label for="pw_confirm" class="left pt-2"> 确认密码 </label>
     <input name="pw_confirm" type="password" class="form-control" id="pw_confirm" placeholder="请确认登录密码" value="">
 
     <div class="form-group pt-0" style="color: red">{{ msg }}</div>
     <br>
-    <button class="btn btn btn-primary mr-3" type="submit">修改</button>
+    <button class="btn btn btn-primary mr-3" type="submit">添加</button>
     <br>
-    <a href="/" class="text-decoration-none"> 返回登录 </a>
-    <br>
-    <a href="/user_index" class="text-decoration-none"> 返回 </a>
+    <a href="/admin_query/" class="text-decoration-none"> 返回 </a>
 </form>
 <div class="fixed-bottom text-muted" style="font-size: small">
     小组成员:<br>

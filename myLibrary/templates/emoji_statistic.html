@@ -1,35 +1,46 @@
-<!--
-该页面功能：显示emoji信息，统计过去7天的使用人数和发送数量
-TODO:
-    1. 之前的变量类型是book，如果觉得命名不方便可以在后端里面改(方法：views.py里面ctrl+f搜admin_book_info.html)，前端也适配就可以
-    2. 导出数据那里，之前的逻辑是一个文件夹里有文件，然后查询这个文件夹，返回变量，有的话就显示，实时导出的话可能要改一下获取文件的过程（在前后端对接的部分）
-    3. 和后端对接时，需要改urls.py和views.py里面对应的接口
--->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <link href="../../static/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css">
     <link href="../../static/css/dashboard.css" rel="stylesheet">
-    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+            integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+            crossorigin="anonymous"></script>
     <script src="../../static/bootstrap/js/bootstrap.min.js"></script>
     <script src="../../static/zico/JS/zico.min.js"></script>
-    <title> emoji状态查询 </title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {#    <script src="../../static/js/canvas.js"></script>#}
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/2.2.4/jquery.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.0.2/echarts.common.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.0.2/echarts.min.js"></script>
+    <script>
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+        })
+    </script>
+    <title>统计emoji数据</title>
 </head>
-<body>
+<body class="text-center">
+<!--顶部栏-->
 <nav class="navbar navbar-dark sticky-top flex-md-nowrap p-0 shadow" style="background-color: #29abff;">
     <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="/admin_index/"
        style="font-weight: bold;font-size: x-large;">emoji管理系统</a>
-    <span style="font-size: medium; color: #ffffff; margin-top: 0px; font-weight: bold;font-size: large;">emoji详情页面</span>
+    <span style="font-size: medium; color: #ffffff; margin-top: 0px; font-weight: bold;font-size: large;">管理员系统：欢迎 {{ name }}</span>
     <ul class="navbar-nav px-3">
         <li class="nav-item text-nowrap">
             <a class="nav-link" href="/logout_view/" style="font-weight: bold;color: #ffffff">退出登录</a>
         </li>
     </ul>
 </nav>
+
 <div class="container-fluid">
     <div class="row">
+        <!--侧边栏-->
         <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
             <div class="sidebar-sticky pt-3">
                 <ul class="nav flex-column">
@@ -42,116 +53,122 @@ TODO:
                     <li class="nav-item">
                         <a class="nav-link" href="/admin_query/">
                             <i class="zi zi_search"></i>
-                            <span>emoji状态查询</span>
+                            <span>查看用户数据</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/send_emoji/">
+                        <a class="nav-link" href="/emoji_query/">
                             <i class="zi zi_squareDown"></i>
-                            <span>发送emoji</span>
-                        </a>
-                    </li>
-                        <!--
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin_return/">
-                            <i class="zi zi_squareUp"></i>
-                            <span>还书</span>
+                            <span>查看emoji数据</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin_upload/">
-                            <i class="zi zi_squarePlus"></i>
-                            <span>入库</span>
-                        </a>
-                    </li>
-            -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin_takeoff/">
-                            <i class="zi zi_squareLess"></i>
-                            <span>用户注销</span>
-                        </a>
-                    </li>
-                <!--
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin_pay/">
-                            <i class="zi zi_yensign"></i>
-                            <span>为读者缴费/扣费</span>
+                        <a class="nav-link" href="/emoji_export/">
+                            <i class="zi zi_squareDown"></i>
+                            <span>导出emoji数据</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin_recommend/">
-                            <i class="zi zi_bell"></i>
-                            <span>处理读者荐购</span>
+                        <a class="nav-link" href="/emoji_statistic/">
+                            <i class="zi zi_squareDown"></i>
+                            <span>统计emoji数据</span>
                         </a>
                     </li>
-                    -->
                 </ul>
             </div>
         </nav>
+        <div class="background"></div>
+
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+            <form role="form" action="/emoji_statistic/" method="post" class="login-box">
+                {% csrf_token %}
+                <h3 class="login-title"> 选择时间 </h3>
+                <label for="beginTime" class="left pt-1"> 开始时间 </label>
+                <input name="beginTime" type="datetime-local" class="form-control" id="beginTime"
+                       placeholder="请选择开始时间" autofocus value="{{ beginTime }}">
+
+                <label for="endTime" class="left pt-2"> 结束时间 </label>
+                <input name="endTime" type="datetime-local" class="form-control" id="endTime"
+                       placeholder="请选择结束时间"
+                       autofocus value="{{ endTime }}">
+                <br>
+                <button class="btn btn btn-primary mr-3" type="submit">查询</button>
+                <br><br>
+                {% if msg %}
+                    <div class="alert alert-primary alert-dismissible fade show" role="alert"
+                         style="display: inline-block">
+                        {{ msg }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endif %}
+            </form>
+
+            {% if emoji_count and emoji_map %}
+                <table class="table container-fluid">
+                <thead class="thead-light">
+                </thead>
+                <tbody>
+                <tr>
+                {% for emoji in emoji_count.keys %}
+                        <td>
+                            {% if emoji == "laugh" %}
+                                😄
+                            {% elif emoji == "forced_smile" %}
+                                😅
+                            {% elif emoji == "light_up_with_pleasure" %}
+                                🥰
+                            {% elif emoji == "think" %}
+                                🤔
+                            {% elif emoji == "indifference" %}
+                                😐
+                            {% elif emoji == "sleepy" %}
+                                😪
+                            {% elif emoji == "slightly_dissatisfied" %}
+                                🙁
+                            {% elif emoji == "painful" %}
+                                😣
+                            {% else %}
+                                {{ emoji }}
+                            {% endif %}
+                            ( {{ emoji }} )
+                        </td>
+                {% endfor %}
+                </tr>
+                <tr>
+                {% for count in emoji_count.values %}
+                        <td>
+                            {{ count }}
+                        </td>
+                {% endfor %}
+                </tr>
+            </tbody>
+            </table>
+            {% else %}
+            还未发送过emoji！
+        {% endif %}
+            <br>
+            <br>
+        </main>
     </div>
 </div>
-<main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
-    <!--展示图书信息的代码-->
-
-    {% block content %}
-
-    <div class="row">
-        <div class="col-md-12">
-            <h2>{{ book.book_name }}</h2>
-            <hr>
-            {% csrf_token %}
-            {% if book.image %}
-            {% load static %}
-            <!--<img src="../../../media/{{ book.image }}" alt="{{ book.book_name }}的图片">-->
-
-            <img src="{% static book.image %}" alt="图片" style="max-height:200px; max-width:200px;">
-
-            {% else %}
-            <br>
-            <div class="alert alert-warning max-w-50" role="alert">
-                <strong>注意!</strong> 该emoji暂无图片
-            </div>
-            {% endif %}
-            <p><strong>emoji编号:</strong> {{ book.isbn }}</p>
-            <p><strong>名称:</strong> {{ book.author }}</p>
-            <p><strong>过去7天使用人数:</strong> {{ book.last7days_users }}</p>
-            <p><strong>过去7天发送次数:</strong> {{ book.last7days_count }}</p>
-            {% if book.pdf %}
-            {% load static %}
-            <a href="{% static book.pdf %}" class="btn btn-primary">导出历史数据</a>
-            {% else %}
-            <br><br>
-            <div class = "alert alert-warning" role = "alert">
-                <strong>注意!</strong> 该emoji暂无历史数据
-            </div>
-            {% endif %}
-·
-        </div>
-    </div>
-
-    {% endblock %}
-    <!--views.py里对应的函数（参考）
-    不在html里调用，在urls.py里调用
-    from django.shortcuts import render, get_object_or_404
-    from .models import Book
-
-    def book_detail(request, isbn):
-        book = get_object_or_404(Book, isbn=isbn)
-        return render(request, 'reader_book_info.html', {'book': book})
-    -->
-
-</main>
-
 </body>
 </html>
 <style>
     body {
-        background-image: url("../../../static/img/background-o.jpg");
+        background-image: url("../../static/img/background-o.jpg");
         background-size: cover;
         width: 100%;
         height: 100%;
         position: absolute;
         background-repeat: no-repeat;
         background-attachment: fixed;
+    }
+
+    .box {
+        width: 1200px;
+        height: 1200px;
+        background-color: rgb(188, 227, 236);
     }
 </style>

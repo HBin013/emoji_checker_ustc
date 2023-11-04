@@ -1,21 +1,11 @@
-<!--
-    功能：emoji状态查询
-    TODO:
-    1. 输入框的变量要进行适配（例如：value="{{ book_name }}" autofocus name="book_name"
-    2. 前端加载的book_status变量是views.py里admin_query函数产生的book_status变量，可以由这个逻辑链去改后端
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <link href="../../static/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css">
     <link href="../../static/css/dashboard.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-            integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-            crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="../../static/bootstrap/js/bootstrap.min.js"></script>
     <script src="../../static/zico/JS/zico.min.js"></script>
     <script>
@@ -23,13 +13,12 @@
             $('#alert').alert()
         })
     </script>
-    <title> 管理员书目状态查询 </title>
+    <title>emoji数据查询</title>
 </head>
-<body>
+<body class="text-center">
 <!--顶部栏-->
 <nav class="navbar navbar-dark sticky-top flex-md-nowrap p-0 shadow" style="background-color: #29abff;">
-    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="/admin_index/"
-       style="font-weight: bold;font-size: x-large;">图书管理系统</a>
+    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="/admin_index/" style="font-weight: bold;font-size: x-large;">图书管理系统</a>
     <span style="font-size: medium; color: #ffffff; margin-top: 0px; font-weight: bold;font-size: large;">管理员系统：欢迎  {{ name }}</span>
     <ul class="navbar-nav px-3">
         <li class="nav-item text-nowrap">
@@ -53,111 +42,86 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/admin_query/">
                             <i class="zi zi_search"></i>
-                            <span>emoji状态查询</span>
+                            <span>查看用户数据</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/send_emoji/">
+                        <a class="nav-link" href="/emoji_query/">
                             <i class="zi zi_squareDown"></i>
-                            <span>发送emoji</span>
-                        </a>
-                    </li>
-                        <!--
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin_return/">
-                            <i class="zi zi_squareUp"></i>
-                            <span>还书</span>
+                            <span>查看emoji数据</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin_upload/">
-                            <i class="zi zi_squarePlus"></i>
-                            <span>入库</span>
-                        </a>
-                    </li>
-            -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin_takeoff/">
-                            <i class="zi zi_squareLess"></i>
-                            <span>用户注销</span>
-                        </a>
-                    </li>
-                <!--
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin_pay/">
-                            <i class="zi zi_yensign"></i>
-                            <span>为读者缴费/扣费</span>
+                        <a class="nav-link" href="/emoji_export/">
+                            <i class="zi zi_squareDown"></i>
+                            <span>导出emoji数据</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin_recommend/">
-                            <i class="zi zi_bell"></i>
-                            <span>处理读者荐购</span>
+                        <a class="nav-link" href="/emoji_statistic/">
+                            <i class="zi zi_squareDown"></i>
+                            <span>统计emoji数据</span>
                         </a>
                     </li>
-                    -->
                 </ul>
             </div>
         </nav>
+<main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+        <h1 class="h2">emoji数据查询</h1>
     </div>
-</div>
-<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">emoji状态查询</h1>
-    </div>
-    <form role="form" action="/admin_query/" method="post">
-        {% csrf_token %}
-        <div class="form-group row">
-            <label for="book_name" class="col-md-1 col-form-label">名称</label>
-            <div class="col-book_name-3">
-                <input name="book_name" type="text" class="form-control" id="book_name" placeholder=""
-                       value="{{ book_name }}" autofocus name="book_name">
-            </div>
-            <label for="isbn" class="col-md-1 col-form-label"> emoji号 </label>
-            <div class="col-book_name-3">
-                <input name="isbn" type="text" class="form-control" id="isbn" placeholder="" value="{{ isbn }}">
-            </div>
-        </div>
-        <button class="btn btn-primary"> 查询</button>
-    </form>
-    <br>
-    {% if request.method == 'POST' %}
-    {% if not book_status %}
-    <div class="alert alert-warning alert-dismissible fade show" role="alert" style="display: inline-block">
-        未找到匹配信息！
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    {% else %}
-    <table class="table mt-3 table-hover" style="font-size: medium">
+    <h3>emoji数据:</h3>
+    {% if emoji_list %}
+    <table class="table container-fluid">
         <thead class="thead-light">
         <tr>
-            <th scope="col"> emoji号</th>
-            <th scope="col"> 名称</th>
-            <th scope="col" nowrap="true"> 发送总人数</th>
-            <th scope="col" nowrap="true"> 发送总次数</th>
-            <th scope="col" nowrap="true"> 过去七天的发送人数</th>
-            <th scope="col" nowrap="true"> 过去七天的发送次数</th>
+            <th> emoji_id</th>
+            <th> emoji</th>
+            <th> 发送时间</th>
+            <th> 用户id</th>
+            <th> 用户名</th>
         </tr>
         </thead>
         <tbody>
-        {% for elem in book_status %}
+        {% for elem in emoji_list %}
         <tr>
-            <td nowrap="true"> {{ elem.ISBN }}</td>
-            <td nowrap="true"><a href="/libadmin/book/{{ elem.ISBN }}/">{{ elem.book_name }}</a></td>
-            <td align='center' style="font-weight: bold"> {{ elem.num_inlib }}</td>
-            <td align='center' style="font-weight: bold"> {{ elem.num_forbid_borrow }}</td>
-            <td align='center' style="font-weight: bold"> {{ elem.num_not_borrow }}</td>
-            <td align='center' style="font-weight: bold"> {{ elem.num_have_borrow }}</td>
+            <td> {{ elem.eid }}</td>
+            <td>
+                {% if elem.ename == "laugh" %}
+                    😄
+                {% elif elem.ename == "forced_smile" %}
+                    😅
+                {% elif elem.ename == "light_up_with_pleasure" %}
+                    🥰
+                {% elif elem.ename == "think" %}
+                    🤔
+                {% elif elem.ename == "indifference" %}
+                    😐
+                {% elif elem.ename == "sleepy" %}
+                    😪
+                {% elif elem.ename == "slightly_dissatisfied" %}
+                    🙁
+                {% elif elem.ename == "painful" %}
+                    😣
+                {% else %}
+                    {{ elem.ename }}
+                {% endif %}
+            </td>
+            <td> {{ elem.timeStamp }}</td>
+            <td> {{ elem.uid }}</td>
+            <td> {{ elem.stu_name }}</td>
         </tr>
         {% endfor %}
         </tbody>
     </table>
+    {% else %}
+    无emoji数据
+    <br>
     {% endif %}
-    {% endif %}
+    <br>
+
 </main>
-</div>
+    </div>
 </div>
 </body>
 </html>
@@ -172,3 +136,4 @@
         background-attachment: fixed;
     }
 </style>
+

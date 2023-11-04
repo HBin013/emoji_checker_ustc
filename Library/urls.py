@@ -30,8 +30,18 @@ urlpatterns = [
     path('emoji_history/', views.emoji_history, name='emoji_history'),  # 查看历史emoji
 
     path('admin_index/', views.admin_index, name='admin_index'),  # 管理员首页
-    path('send_emoji/', views.send_emoji, name='send_emoji'),  # 发送emoji
-    path('admin_takeoff/', views.admin_takeoff, name='admin_takeoff'),  # 管理员出库
+    path('admin_query/', views.admin_query, name='admin_query'),  # 查看用户数据
+    path('admin_query/add_user/', views.add_user, name='add_user'),  # 添加用户数据
+    path('admin_query/add/', views.add, name='add'), # 添加用户数据页面跳转
+    path('admin_query/modify_user/', views.modify_user, name='modify_user'),  # 修改用户数据
+    path('admin_query/modify/', views.modify, name='modify'), # 添加用户数据页面跳转
+    path('admin_query/delete_user/', views.delete_user, name='delete_user'), # 删除用户
+    path('admin_query/user_emoji/', views.user_emoji, name='user_emoji'), # 查看用户历史emoji
+    path('emoji_query/', views.emoji_query, name='emoji_query'),  # 查看emoji数据
+    path('emoji_export/', views.emoji_export, name='emoji_export'),  # 导出emoji数据
+    path('emoji_statistic/', views.emoji_statistic, name='emoji_statistic'),  # 统计emoji数据
+    path('emoji_statistic/chart_data/', views.emoji_chart, name='emoji_chart'),  # 统计emoji数据
+    path('send_emoji/', views.send_emoji, name='send_emoji')  # 发送emoji
 
 ]
 

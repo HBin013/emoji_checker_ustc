@@ -12,8 +12,9 @@
 </head>
 <body>
 <nav class="navbar navbar-dark sticky-top flex-md-nowrap p-0 shadow" style="background-color: #29abff;">
-    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="/user_index/" style="font-weight: bold;font-size: x-large;">emoji管理系统</a>
-    <span style="font-size: medium; color: #ffffff; margin-top: 0px; font-weight: bold;font-size: large;">欢迎  {{ name }}</span>
+    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="/user_index/"
+       style="font-weight: bold;font-size: x-large;">emoji管理系统</a>
+    <span style="font-size: medium; color: #ffffff; margin-top: 0px; font-weight: bold;font-size: large;">欢迎 {{ name }}</span>
     <ul class="navbar-nav px-3">
         <li class="nav-item text-nowrap">
             <a class="nav-link" href="/logout_view/" style="font-weight: bold;color: #ffffff">退出登录</a>
@@ -44,11 +45,17 @@
                             <span>emoji历史查询</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/modifyPwd/">
+                            <i class="zi zi_squareUp"></i>
+                            <span>修改密码</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </nav>
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">用户emoji发送</h1>
             </div>
             <form role="form" action="/send_emoji/" method="post">
@@ -56,18 +63,28 @@
                 <div class="form-group row">
                     <label for="ename" class="col-md-1 col-form-label"> emoji名称 </label>
                     <div class="col-book_name-3">
-                        <input name="ename" type="text" class="form-control" id="isbn" placeholder="" value="{{ ename }}">
+                        <select name="ename" class="form-control" id="ename">
+                            <option value="laugh">😄</option>
+                            <option value="forced_smile">😅</option>
+                            <option value="light_up_with_pleasure">🥰</option>
+                            <option value="think">🤔</option>
+                            <option value="indifference">😐</option>
+                            <option value="sleepy">😪</option>
+                            <option value="slightly_dissatisfied">🙁</option>
+                            <option value="painful">😣</option>
+                        </select>
                     </div>
                 </div>
                 <button class="btn btn-primary">发送</button>
                 <br><br>
-                {%if msg%}
-                <div class="alert alert-primary alert-dismissible fade show" role="alert" style="display: inline-block">
-                    {{ msg }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
+                {% if msg %}
+                    <div class="alert alert-primary alert-dismissible fade show" role="alert"
+                         style="display: inline-block">
+                        {{ msg }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
                 {% endif %}
             </form>
         </main>
@@ -76,13 +93,13 @@
 </body>
 </html>
 <style>
-    body{
-        background-image:url("../../static/img/background-o.jpg");
+    body {
+        background-image: url("../../static/img/background-o.jpg");
         background-size: cover;
         width: 100%;
         height: 100%;
         position: absolute;
         background-repeat: no-repeat;
-        background-attachment:fixed;
+        background-attachment: fixed;
     }
 </style>
