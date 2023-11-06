@@ -11,7 +11,7 @@ create table user(
     tel varchar(20),
     role int not null check ( role in (0,1,2,3) ), # 游客、管理员、教师、学生
 #     stat int not null check ( stat in (0,1,2) ), # 离线、在线、停用
-    pwd varchar(30) not null check ( length(pwd)>=8 and length(pwd)<=20 ),
+    pwd varchar(128) not null,
 #     path varchar(100),# emoji数据的文件存放路径
 #     layer int not null ,# 权力等级，可能不需要这个属性，暂时先留着
     constraint PK_user primary key user(uid)
@@ -30,7 +30,7 @@ create table course(
 # 需要另外建立ename和具体哪个emoji的映射
 create table emoji(
     eid int not null auto_increment,
-    ename varchar(15) not null,
+    ename varchar(128) not null,
     timeStamp datetime not null,
     uid int not null ,
 #     cid int not null ,

@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             name='Emoji',
             fields=[
                 ('eid', models.AutoField(primary_key=True, serialize=False)),
-                ('ename', models.CharField(max_length=15)),
+                ('ename', models.CharField(max_length=128)),
                 ('timeStamp', models.DateTimeField()),
                 ('uid', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='myLibrary.user')),
             ],
